@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "AppliedStatisticsProject"
+version = "1.0.0"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
