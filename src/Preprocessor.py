@@ -3,6 +3,41 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder
 
 class Preprocessor:
+
+    def CleanData(self):
+        """
+        Esegue la pulizia dei dati
+        """
+        initial_count = len(self.df)
+
+        # Prezzi validi
+        if 'price' in self.df.columns:                  
+            self.df = self.df[self.df['price'] > 0]
+
+            # Clip outlier (1° e 99° percentile)
+            lower = self.df['price'].quantile(0.01)
+            upper = self.df['price'].quantile(0.99)
+            self.df['price'] = self.df['price'].clip(lower, upper)
+
+        #Minimum nights realistici
+        if 'minimum_nights' in self.df.columns:
+            self.df = self.df[self.df['minimum_nights'] <= 365]
+
+        #Coordinate valide (NYC)
+        if 'latitude' in self.df.columns and 'longitude' in self.df.columns:
+            self.df = self.df[
+                (self.df['latitude'].between(40.5, 41)) &
+                (self.df['longitude'].between(-74.3, -73.5))
+            ]
+
+        # (Opzionale) drop colonne inutili
+        # self.df.drop(columns=['id', 'host_name'], inplace=True, errors='ignore')
+        # print(f"Cleaning completato: rimosse {initial_count - len(self.df)} righe non valide.")
+
+        # Pulizia testi per Keyword Analysis
+        if 'name' in self.df.columns:
+            self.df['name'] = self.df['name'].fillna("Unknown")
+
     def __init__(self, df: pd.DataFrame):
         # Usiamo .copy() per evitare il SettingWithCopyWarning di Pandas
         self.df = df.copy()
