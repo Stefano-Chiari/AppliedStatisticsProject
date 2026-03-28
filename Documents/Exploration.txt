@@ -1,0 +1,208 @@
+1. Variabili categoriche: Quartieri: gli annunci si concentrano principalmente in due zone, Brooklyn e Manhattan. 
+                          Bronx e staten islands sono quasi inesistenti a confronto. 
+                          Nella zona del Queens abbiamo pochi annunci.
+                          Osservando le frequenze assolute e relative, notiamo che l'offerta non è distribuita omogeneamente nella città, 
+                          ma è concentrata nei due distretti più turistici e commerciali: Manhattan e Brooklyn. 
+                          Quartieri periferici o residenziali come il Bronx o Staten Island hanno una frequenza vicina allo zero in questo spaccato di dati.
+                          
+                          
+                          Tipi di stanza: Il mercato è dominato per un 52% da EntireHome/apt, 45% private room e 2.4% shared room.
+                          Guardando le frequenze relative, le Private room e gli Entire home/apt si spartiscono la quasi totalità degli annunci. 
+                          Le Shared room (stanze condivise) rappresentano invece una nicchia marginale, pesando per una percentuale trascurabile sul totale. 
+                          Questo ci indica che gli ospiti a New York cercano principalmente privacy.
+
+2. Variabili Numeriche: 
+
+### 1. Variabile: `price` (Prezzo per notte)
+Questa colonna ci racconta quanto costa affittare a New York, ma nasconde delle fortissime anomalie.
+* **`count` (48895.00):** Abbiamo 48.895 dati validi. Non c'è nessun valore mancante (NaN) per i prezzi.
+* **`mean` (152.72):** Il prezzo medio di un alloggio su Airbnb a NYC è di circa 152$ a notte.
+* **`std` (240.15):** La deviazione standard è enorme, addirittura *superiore* alla media stessa! Questo indica una volatilità estrema: i prezzi non sono raggruppati vicino alla media, ma variano in modo selvaggio.
+* **`min` (0.00):** Un'anomalia grave. Un alloggio non può costare zero dollari. Si tratta sicuramente di un errore di inserimento dati da parte dell'host o di annunci "fittizi". Sarà un dato da pulire.
+* **`25%` (69.00):** Un quarto dell'offerta totale di New York è molto economica e costa al massimo 69$ a notte.
+* **`50%` (106.00):** È la Mediana. Significa che il 50% degli alloggi costa meno di 106$. Essendo molto più bassa della media (152$), ci dimostra che la maggior parte delle case costa poco, ma ci sono pochi alloggi costosissimi che "tirano" su la media.
+* **`75%` (175.00):** Il 75% degli annunci rientra nella fascia sotto i 175$. Da qui in poi entriamo nella fascia del "lusso".
+* **`max` (10000.00):** Il valore anomalo per eccellenza (*outlier*). C'è almeno un alloggio prezzato a 10.000$ per una singola notte. Questo spiega la deviazione standard così alta!
+
+### 2. Variabile: `minimum_nights` (Notti minime di prenotazione)
+Questa variabile ci mostra le "regole" imposte dagli host, evidenziando alcuni comportamenti bizzarri.
+* **`count` (48895.00):** Anche qui, nessun dato mancante. Tutti gli annunci hanno impostato un numero minimo di notti.
+* **`mean` (7.03):** In media, un host richiede una settimana esatta (7 notti) di permanenza minima.
+* **`std` (20.51):** Anche qui c'è molta dispersione. Una deviazione standard di 20 rispetto a una media di 7 ci indica che ci sono valori che si allontanano tantissimo dalla norma.
+* **`min` (1.00):** Totalmente normale. La flessibilità massima: prenoti per una sola notte.
+* **`25%` (1.00):** Il 25% degli host offre questa massima flessibilità (1 notte).
+* **`50%` (3.00):** La mediana ci dice che metà degli host richiede al massimo 3 notti (il classico "weekend lungo" turistico). Questa è la vera normalità di Airbnb.
+* **`75%` (5.00):** I tre quarti degli annunci richiedono 5 notti o meno.
+* **`max` (1250.00):** Un dato assurdo. Un host richiede un soggiorno minimo di 1.250 notti (più di 3 anni!). Evidentemente non è un annuncio per turisti, ma un affitto a lungo termine o un errore.
+
+### 3. Variabile: `number_of_reviews` (Numero di recensioni)
+Ci dà un'idea del "traffico" e della storicità degli alloggi.
+* **`count` (48895.00):** Nessun dato mancante.
+* **`mean` (23.27):** In media, un annuncio ha ricevuto circa 23 recensioni da quando è stato pubblicato.
+* **`std` (44.55):** Deviazione standard alta. Significa che ci sono molti alloggi con zero o pochissime recensioni e pochi alloggi che ne hanno centinaia.
+* **`min` (0.00):** Ci sono alloggi con zero recensioni. Del tutto normale: sono annunci caricati da poco o che non hanno mai avuto ospiti.
+* **`25%` (1.00):** Ben il 25% del totale degli annunci a New York ha al massimo 1 singola recensione. Questo indica un grande *turnover* o molti account "dormienti".
+* **`50%` (5.00):** La mediana. La metà esatta degli annunci di NYC ha 5 recensioni o meno.
+* **`75%` (24.00):** Solo il 25% degli annunci più "popolari" supera le 24 recensioni.
+* **`max` (629.00):** L'annuncio di maggior successo o più longevo del dataset vanta ben 629 recensioni.
+
+### 4. Variabile: `availability_365` (Giorni di disponibilità in un anno)
+Ci dice se l'host usa Airbnb per "arrotondare" quando è in vacanza, o se è un professionista che affitta tutto l'anno.
+* **`count` (48895.00):** Tutti i 48.895 annunci hanno questo dato compilato.
+* **`mean` (112.78):** In media, un alloggio è disponibile per circa 112 giorni (circa un terzo dell'anno).
+* **`std` (131.62):** Altissima. Indica che le disponibilità sono spalmate su tutto lo spettro, da 0 a 365.
+* **`min` (0.00):** Molti alloggi hanno disponibilità pari a zero. Potrebbero essere case già completamente prenotate, oppure annunci disattivati/bloccati dall'host.
+* **`25%` (0.00):** Questo dato è importantissimo! Addirittura **il 25% dell'intero dataset ha 0 giorni di disponibilità**. Un quarto degli annunci, di fatto, non è prenotabile.
+* **`50%` (45.00):** La mediana ci dice che metà degli alloggi è disponibile per meno di un mese e mezzo all'anno. Profilo tipico di chi affitta casa propria solo quando va in ferie.
+* **`75%` (227.00):** C'è uno stacco enorme dal 50%. Significa che il 25% superiore del mercato offre la casa per gran parte dell'anno (da 227 giorni in su).
+* **`max` (365.00):** Questi sono gli host "professionisti" o le vere e proprie strutture ricettive. La casa è sul mercato 365 giorni su 365.
+
+Skewness e Kurtosis:
+1. Variabile: price (Prezzo)
+Skewness (19.12): Un valore estremamente positivo. Questo indica una distribuzione fortemente asimmetrica a destra. 
+Tradotto in realtà: la stragrande maggioranza degli appartamenti si concentra nella fascia "bassa" di prezzo 
+(come abbiamo visto, tra 69$ e 175$), ma la curva non scende a zero dolcemente; 
+si trascina invece in una "coda" lunghissima verso destra a causa di pochi appartamenti dal costo spropositato.
+
+Kurtosis (585.61): Un valore gigantesco! La distribuzione è iper-leptocurtica. 
+Questo numero così alto è la prova matematica assoluta della presenza di outliers estremi. 
+Significa che l'istogramma del prezzo è un "muro" verticale sui valori bassi, ma con delle code così pesanti da ospitare 
+prezzi fuori scala (come il famoso alloggio da 10.000$ a notte).
+
+2. Variabile: minimum_nights (Notti minime)
+Questa è la variabile con i valori statistici più sballati (e interessanti) di tutto il dataset.
+
+Skewness (21.83): È l'asimmetria più alta del dataset. Praticamente tutto il "peso" dei dati è schiacciato a sinistra 
+(tra 1 e 5 notti), ma la curva si allunga in modo irrealistico verso destra fino ad arrivare al valore di 1250 notti.
+
+Kurtosis (853.98): Il record assoluto. Una curtosi di quasi 854 rende il grafico quasi impossibile da disegnare correttamente 
+senza usare i logaritmi! Conferma in modo insindacabile che le regole imposte dagli host non seguono un andamento naturale, 
+ma sono inquinate da regole folli (affitti pluriennali) che distruggono la forma a campana della distribuzione.
+
+3. Variabile: number_of_reviews (Numero di recensioni)
+Questa variabile ha un comportamento molto più vicino al "mondo reale" rispetto alle precedenti, ma rimane asimmetrica.
+Skewness (3.69): Asimmetria positiva moderata. Ci dice fisiologicamente che è facile avere poche recensioni 
+(es. case nuove), ma molto difficile averne centinaia. 
+La "coda a destra" è formata dai cosiddetti Superhost o da annunci storici presenti da anni sulla piattaforma.
+
+Kurtosis (19.53): È un valore chiaramente leptocurtico (> 0), ma immensamente più basso rispetto al prezzo e alle notti. 
+Ci dice che ci sono degli outliers (alloggi con oltre 600 recensioni), ma il loro peso è molto più contenuto e tollerabile per l'analisi.
+
+4. Variabile: availability_365 (Disponibilità annuale)
+L'eccezione alla regola: l'unica variabile che si comporta in modo completamente opposto alle altre tre!
+
+Skewness (0.76): È l'unico valore vicino allo zero. Indica che la distribuzione non pende in modo drammatico né a destra né a sinistra. 
+I giorni di disponibilità sono distribuiti in modo abbastanza vario su tutto il calendario.
+
+Kurtosis (-1.00): Unico valore negativo del dataset! Questa è una distribuzione platicurtica. 
+Essendo inferiore a zero, significa che la curva "non ha un picco" centrale netto ed è più "piatta" di una curva normale, 
+e soprattutto che non ha outliers significativi. Questo accade perché i dati sono bloccati e sparpagliati tra due "muri" invalicabili: i
+l minimo (0 giorni) e il massimo (365 giorni), accumulandosi molto proprio agli estremi (chi affitta mai e chi affitta sempre).
+
+Istogrammi e Boxplot:
+1. price (Prezzo)
+Istogramma: Visivamente, il grafico sembra un unico, gigantesco "palo" schiacciato a ridosso dello zero, seguito dal vuoto. 
+Questo accade perché l'asse delle X (orizzontale) è costretto ad allungarsi fino a 10.000$ per includere l'outlier massimo, 
+rendendo la parte "normale" dei dati (tra 69$ e 175$) un'unica linea illeggibile.
+
+Boxplot: La scatola verde (che contiene il 50% centrale dei dati) e i baffi sono minuscoli e completamente schiacciati sul fondo del grafico. 
+Sopra il baffo superiore, vedrai una vera e propria "pioggia" di puntini neri (i valori anomali) 
+che si estendono verso l'alto fino al picco isolato di 10.000. È la rappresentazione visiva perfetta di una distribuzione iper-leptocurtica.
+
+2. minimum_nights (Notti minime)
+Istogramma: Esattamente come per il prezzo, l'istogramma è illeggibile. Dato che c'è un host che chiede 1.250 notti, 
+il grafico deve creare 1.250 "spazi" sull'asse X. Di conseguenza, il 99% degli annunci (che chiede meno di 30 notti) 
+si ammassa in una singola colonnina strettissima all'estrema sinistra.
+
+Boxplot: La situazione qui è ancora più estrema. La scatola del boxplot è talmente schiacciata in basso da sembrare una semplice 
+linea orizzontale (dato che Q1 è 1, Mediana è 3 e Q3 è 5, sono praticamente attaccati). Poi c'è uno spazio vuoto enorme e un singolo
+ puntino irraggiungibile in cima, a quota 1250.
+
+3. number_of_reviews (Numero di recensioni)
+Istogramma: Qui finalmente il grafico ha una forma leggibile. Vedrai una tipica "curva a scivolo" (esponenziale decrescente). 
+Parte altissima vicino allo zero (poiché la mediana è 5, la maggior parte delle case ha pochissime recensioni) e 
+scivola dolcemente verso destra, assottigliandosi fino ad arrivare al record di 629 recensioni.
+
+Boxplot: Il boxplot ha una forma classica per le distribuzioni asimmetriche. La scatola è visibile ma confinata nella parte bassa, 
+mentre il baffo superiore è seguito da molti puntini (outliers) distribuiti in modo abbastanza continuo verso l'alto. 
+Questo indica che i Superhost con centinaia di recensioni sono tanti, ma comunque considerati "anomali" rispetto alla massa.
+
+4. availability_365 (Disponibilità annuale)
+Istogramma: Questo è il grafico più unico del progetto. Non c'è la classica "campana" centrale. 
+Al contrario, vedrai due picchi (colonne altissime) agli estremi opposti: uno gigantesco sullo zero 
+(le case mai disponibili, che sono il 25% del totale!) e un altro grande picco sul 365 (le case sempre disponibili). 
+Nel mezzo, i dati sono spalmati in modo irregolare. Questa forma "a U" o "bimodale" agli estremi è la causa della curtosi negativa (-1.00).
+
+Boxplot: È l'unico boxplot "sano" di tutto il set! La scatola è larghissima (parte da 0 e arriva fino a 227) e la linea della mediana 
+(45) taglia la scatola in modo non simmetrico. La cosa più importante da far notare al prof: in questo boxplot non ci sono puntini neri 
+(outliers) fuori dai baffi. I dati riempiono tutto lo spazio consentito senza superare i limiti naturali (0 e 365).
+
+ANALISI BIVARIATA E MULTIVARIATA
+1. Boxplot incrociato (price diviso per room_type)
+
+
+L'impatto visivo: A causa dell'outlier di 10.000$, le "scatole" del boxplot saranno tutte schiacciate verso il fondo del grafico.
+
+L'interpretazione: Nonostante l'effetto di schiacciamento, è evidente che la categoria Entire home/apt (Casa intera) 
+abbia la mediana più alta e la scatola più ampia, seguita dalle Private room e infine dalle Shared room, 
+che sono le più economiche in assoluto. Un dettaglio interessante da notare è che i valori anomali estremi 
+(i puntini neri più alti) appartengono quasi tutti a case intere o stanze private, indicando che il mercato del "super-lusso" 
+non tocca le stanze condivise.
+
+2. Matrice di Correlazione (Heatmap Blu)
+
+
+L'interpretazione: In questo dataset c'è una quasi totale assenza di correlazione lineare tra le variabili numeriche.
+
+Il prezzo non scende all'aumentare delle notti minime richieste.
+
+Avere un prezzo più alto non garantisce più recensioni (anzi, spesso le case più economiche hanno più recensioni per via 
+del maggior turnover di turisti, ma il legame resta debolissimo).
+
+Questa è una scoperta importante: significa che per prevedere il prezzo di una casa, le sole variabili numeriche non bastano, 
+ma serviranno le variabili categoriche (come il quartiere).
+
+3. Matrice di Covarianza (Heatmap Verde)
+
+L'interpretazione: La covarianza ci mostra la variabilità congiunta, ma è pesantemente influenzata dall'unità di misura e 
+dai valori estremi. Dato che price ha una deviazione standard enorme rispetto a minimum_nights, la matrice risulta illeggibile ai fini pratici.
+ Questo grafico dimostra al prof che usare la Correlazione è di gran lunga preferibile per capire le relazioni reali.
+
+4. Scatterplot (minimum_nights vs price colorato per quartiere)
+
+L'interpretazione: L'analisi bivariata soffre tremendamente del problema dell'overplotting (troppi punti sovrapposti) 
+e della presenza degli outlier. Tuttavia, guardando i colori (hue), si noterà che i puntini che si spingono più in alto sull'asse Y 
+(prezzi stellari) appartengono quasi esclusivamente al colore di Manhattan, confermandosi il quartiere del lusso per eccellenza.
+
+5. Pairplot (La griglia riassuntiva)
+L'interpretazione: Il pairplot offre una sintesi globale, ma riconferma i problemi visti finora. 
+Le distribuzioni sulle diagonali mostrano l'asimmetria che abbiamo già analizzato numericamente. 
+Negli scatterplot fuori dalla diagonale, i colori (che separano per room_type) confermano che le "Entire home" tendono a dominare 
+le fasce alte di tutte le distribuzioni (prezzi più alti e disponibilità più ampie), mentre le "Shared room" rimangono 
+relegate vicino agli zeri degli assi cartesiani
+        
+BINS E HEXBIN PLOT:
+. Istogramma del Prezzo con Bins personalizzati (bins=30)
+
+
+L'interpretazione per il progetto: Aver forzato il grafico a usare 30 "cestini" (bins) distribuiti su un range da 0 a 10.000$ 
+significa che il primo cestino copre i prezzi da 0$ a circa 333$. Sapendo che il 75% degli alloggi costa meno di 175$, 
+è ovvio che la quasi totalità dei 48.895 annunci finisca dentro quel primissimo cestino! Questo grafico è la prova visiva definitiva 
+di quanto gli estremi (outliers) distorcano la scala della visualizzazione, rendendo impossibile l'analisi della parte "normale" del mercato.
+
+2. Hex Bin Plot: Densità geografica (Latitudine vs Longitudine)
+
+L'interpretazione per il progetto: L'Hex Bin Plot risolve in modo elegante il problema dell'overplotting (i punti sovrapposti). 
+Se avessimo usato un semplice scatterplot, 49.000 pallini avrebbero creato una macchia di inchiostro nero illeggibile. 
+Con l'Hex Bin, invece, si crea una vera e propria "mappa di calore" geografica: emerge chiaramente che le zone a densità abitativa 
+turistica più estrema (gli esagoni rosso scuro) sono concentrate nel cuore di Manhattan (Midtown/Downtown) e nei quartieri affacciati 
+sull'East River a Brooklyn (come Williamsburg).
+
+3. Jointplot Hexbin: Prezzo vs Numero di Recensioni
+
+L'interpretazione per il progetto: Questo Jointplot incrocia due distribuzioni fortemente asimmetriche (skewed). 
+Poiché l'asse orizzontale (Prezzo) deve allungarsi fino a 10.000$ e quello verticale (Recensioni) fino a 629, il 99% dei dati reali 
+(es. alloggi a 100$ con 5 recensioni) viene violentemente compresso nel primissimo esagono in basso a sinistra. Questo grafico 
+ribadisce quanto osservato nella matrice di correlazione: non c'è una relazione lineare evidente, e la presenza degli outliers 
+impedisce qualsiasi lettura incrociata di queste due metriche.
+
