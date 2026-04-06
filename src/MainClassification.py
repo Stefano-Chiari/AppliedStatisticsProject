@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from Classification.LogisticRegression import LogisticRegression
+
 class Classification:
     """
     Handles categorical target prediction.
@@ -15,9 +17,16 @@ class Classification:
         """Train/Test split specifically for classification."""
         pass
 
-    def run_logistic_regression(self):
-        """Baseline linear classification."""
-        pass
+    def run_logistic_regression(self, data):
+        # Example implementation, LogisticRegression is empty
+        reg = LogisticRegression()
+
+        res = []
+
+        for x in data:
+            res.append(reg.predict(x))
+
+        return np.array(res)
 
     def run_ensemble_methods(self):
         """Random Forest or Gradient Boosting."""

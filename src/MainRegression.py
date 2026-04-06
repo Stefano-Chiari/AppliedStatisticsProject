@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from Regression.LinearRegression import LinearRegression
+
 class Regression:
     """
     Handles continuous target prediction.
@@ -15,9 +17,15 @@ class Regression:
         """Lasso (L1) or Stepwise selection."""
         pass
 
-    def run_linear_model(self):
+    def run_linear_model(self, data):
         """Ordinary Least Squares or Ridge."""
-        pass
+        model = LinearRegression()
+        res = []
+
+        for x in data:
+            res.append(model.predict(x))
+
+        return np.array(res)
 
     def run_tree_regression(self):
         """Decision Tree Regressor or Ensembles."""

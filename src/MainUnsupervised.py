@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from Unsupervised.KMeans import KMeans
+
 class Unsupervised:
     """
     Handles Dimensionality Reduction and Clustering.
@@ -21,7 +23,9 @@ class Unsupervised:
 
     def run_clustering(self, algorithm='kmeans', n_clusters=3):
         """K-Means or Hierarchical clustering."""
-        pass
+        # Example implementation, the class is still not working
+        if algorithm == 'kmeans':
+            model = KMeans()
 
     def visualize_latent_space(self):
         """Plotting components colored by clusters."""
