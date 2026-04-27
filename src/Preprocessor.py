@@ -126,3 +126,81 @@ class Preprocessor:
         if 'neighbourhood' in self.df.columns:
             counts = self.df['neighbourhood'].value_counts()
             self.df['listings_in_neighbourhood'] = self.df['neighbourhood'].map(counts)
+
+
+
+class FullPipeline(Preprocessor):
+    def __init__(self, filepath):
+        # Inizializziamo caricando direttamente i dati
+        self.df = pd.read_csv(filepath)
+        
+    def transform(self):
+        """
+        Coordina i metodi della classe padre e aggiunge i passaggi mancanti.
+        """
+        # A. Metodi della classe padre (Preprocessor.py)
+        self.CleanData()
+        self.AddAvailabilityRatio()
+        
+        # Gestione sicura per evitare errori se le colonne mancano
+        if 'last_review_days_ago' in self.df.columns:
+            self.AddReviewsPerYear()
+            
+        if 'calculated_host_listings_count' in self.df.columns:
+            self.AddHostIsProfessional()
+            
+        self.AddRoomTypeOrdinal()
+        
+        # B. Modifiche aggiuntive (Encoding, Log-Transform, Drop)
+        
+        # One-Hot Encoding per il distretto (variabile nominale, non ordinale)
+        if 'neighbourhood_group' in self.df.columns:
+            self.df = pd.get_dummies(self.df, columns=['neighbourhood_group'], drop_first=True, dtype=int)
+            
+        # Trasformazione logaritmica del target
+        if 'price' in self.df.columns:
+            self.df['log_price'] = np.log1p(self.df['price'])
+            
+        # Eliminazione delle variabili testuali, ridondanti o affette da data leakage
+        to_drop = ['id', 'name', 'host_id', 'host_name', 'neighbourhood', 
+                   'last_review', 'price', 'latitude', 'longitude', 'last_review_days_ago', 'room_type']
+        
+        self.df.drop(columns=to_drop, inplace=True, errors='ignore')
+        
+        # Riempimento finale di eventuali NaN (es. appartamenti senza recensioni)
+        self.df.fillna(0, inplace=True)
+        
+        return self.df
+
+
+class TreePipeline(Preprocessor):
+    def __init__(self, filepath):
+        self.df = pd.read_csv(filepath)
+        
+    def transform(self):
+        self.CleanData()
+        self.AddAvailabilityRatio()
+        
+        if 'last_review_days_ago' in self.df.columns:
+            self.AddReviewsPerYear()
+            
+        if 'calculated_host_listings_count' in self.df.columns:
+            self.AddHostIsProfessional()
+            
+        self.AddRoomTypeOrdinal()
+        
+        # One-Hot Encoding per i macro-quartieri (aiuta l'albero nei primissimi split)
+        if 'neighbourhood_group' in self.df.columns:
+            self.df = pd.get_dummies(self.df, columns=['neighbourhood_group'], drop_first=False, dtype=int)
+            
+        if 'price' in self.df.columns:
+            self.df['log_price'] = np.log1p(self.df['price'])
+            
+        # ATTENZIONE: Qui NON eliminiamo 'latitude' e 'longitude'
+        to_drop = ['id', 'name', 'host_id', 'host_name', 'neighbourhood', 
+                   'last_review', 'price', 'last_review_days_ago', 'room_type']
+        
+        self.df.drop(columns=to_drop, inplace=True, errors='ignore')
+        self.df.fillna(0, inplace=True)
+        
+        return self.df
