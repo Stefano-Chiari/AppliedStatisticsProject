@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 
 class TreeRegression:
@@ -16,9 +17,14 @@ class TreeRegression:
             n_jobs=-1 
         )
         self.is_fitted = False
+        self.feature_names = None
 
     def fit(self, X, y):
         """Addestra la foresta casuale."""
+        # Se X è un DataFrame, salviamo i nomi delle colonne per dopo
+        if isinstance(X, pd.DataFrame):
+            self.feature_names = X.columns.tolist()
+
         X_arr = np.array(X)
         y_arr = np.array(y)
         self.model.fit(X_arr, y_arr)
@@ -42,6 +48,14 @@ class TreeRegression:
         Negli alberi non ci sono coefficienti (pesi), ma un indice di 
         'importanza' che indica quanto ogni feature riduca l'errore.
         """
-        if self.is_fitted:
-            return self.model.feature_importances_
-        return None
+        if not self.is_fitted:
+            return None
+
+        importances = self.model.feature_importances_
+
+        # Se abbiamo i nomi delle feature, restituiamo una Series per una facile lettura
+        if self.feature_names:
+            return pd.Series(importances, index=self.feature_names)
+        
+        # Altrimenti, restituiamo l'array grezzo
+        return importances

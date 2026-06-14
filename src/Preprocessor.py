@@ -139,8 +139,10 @@ class FullPipeline(Preprocessor):
         Coordina i metodi della classe padre e aggiunge i passaggi mancanti.
         """
         # A. Metodi della classe padre (Preprocessor.py)
+        self.DateToInt(['last_review'])
         self.CleanData()
         self.AddAvailabilityRatio()
+        self.AddDistanceFromCityCenter()
         
         # Gestione sicura per evitare errori se le colonne mancano
         if 'last_review_days_ago' in self.df.columns:
@@ -150,6 +152,7 @@ class FullPipeline(Preprocessor):
             self.AddHostIsProfessional()
             
         self.AddRoomTypeOrdinal()
+        self.AddListingsPerArea() 
         
         # B. Modifiche aggiuntive (Encoding, Log-Transform, Drop)
         
@@ -163,7 +166,7 @@ class FullPipeline(Preprocessor):
             
         # Eliminazione delle variabili testuali, ridondanti o affette da data leakage
         to_drop = ['id', 'name', 'host_id', 'host_name', 'neighbourhood', 
-                   'last_review', 'price', 'latitude', 'longitude', 'last_review_days_ago', 'room_type']
+                   'last_review', 'price', 'latitude', 'longitude', 'room_type']
         
         self.df.drop(columns=to_drop, inplace=True, errors='ignore')
         
@@ -178,8 +181,10 @@ class TreePipeline(Preprocessor):
         self.df = pd.read_csv(filepath)
         
     def transform(self):
+        self.DateToInt(['last_review'])
         self.CleanData()
         self.AddAvailabilityRatio()
+        self.AddDistanceFromCityCenter()
         
         if 'last_review_days_ago' in self.df.columns:
             self.AddReviewsPerYear()
@@ -188,6 +193,7 @@ class TreePipeline(Preprocessor):
             self.AddHostIsProfessional()
             
         self.AddRoomTypeOrdinal()
+        self.AddListingsPerArea() 
         
         # One-Hot Encoding per i macro-quartieri (aiuta l'albero nei primissimi split)
         if 'neighbourhood_group' in self.df.columns:
@@ -198,7 +204,7 @@ class TreePipeline(Preprocessor):
             
         # ATTENZIONE: Qui NON eliminiamo 'latitude' e 'longitude'
         to_drop = ['id', 'name', 'host_id', 'host_name', 'neighbourhood', 
-                   'last_review', 'price', 'last_review_days_ago', 'room_type']
+                   'last_review', 'price', 'room_type']
         
         self.df.drop(columns=to_drop, inplace=True, errors='ignore')
         self.df.fillna(0, inplace=True)
