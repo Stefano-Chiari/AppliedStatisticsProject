@@ -127,6 +127,16 @@ class Preprocessor:
             counts = self.df['neighbourhood'].value_counts()
             self.df['listings_in_neighbourhood'] = self.df['neighbourhood'].map(counts)
 
+    def YeoJohnsonTransform(self, features):
+        """
+        Applica la trasformazione Yeo-Johnson alle feature specificate.
+        Rende le distribuzioni skewed più simili alla normale.
+        Funziona anche con valori zero e negativi (a differenza di Box-Cox).
+        """
+        from sklearn.preprocessing import PowerTransformer
+        pt = PowerTransformer(method='yeo-johnson', standardize=False)
+        self.df[features] = pt.fit_transform(self.df[features])
+
 
 
 class FullPipeline(Preprocessor):
@@ -153,6 +163,21 @@ class FullPipeline(Preprocessor):
             
         self.AddRoomTypeOrdinal()
         self.AddListingsPerArea() 
+
+        yj_features = [
+            'minimum_nights',
+            'number_of_reviews', 
+            'reviews_per_month',
+            'calculated_host_listings_count',
+            'availability_365',
+            'distance_from_center',
+            'listings_in_neighbourhood',
+            'reviews_per_year',
+            'last_review_days_ago'
+        ]
+        # Filtriamo solo le colonne che esistono effettivamente nel dataframe
+        yj_features = [f for f in yj_features if f in self.df.columns]
+        self.YeoJohnsonTransform(yj_features)
         
         # B. Modifiche aggiuntive (Encoding, Log-Transform, Drop)
         
@@ -174,6 +199,8 @@ class FullPipeline(Preprocessor):
         self.df.fillna(0, inplace=True)
         
         return self.df
+
+        
 
 
 class TreePipeline(Preprocessor):

@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import validation_curve
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
 
 # Importa i modelli che abbiamo creato
 from Regression.LinearRegression import LinearRegression
@@ -20,6 +22,7 @@ class Regression:
         self.df = df
         self.target = target_column
         self.results = {}
+        self.last_model = None
         
         # 1. Separiamo feature (X) e target (y) dal dataframe originale
         X = self.df.drop(columns=[self.target])
@@ -32,7 +35,7 @@ class Regression:
 
         print(f"Dati divisi in training ({len(self.X_train)} righe) e test ({len(self.X_test)} righe).")
 
-    def _feature_selection(self, X_train, y_train, method='lasso', alpha=0.001):
+    def _feature_selection(self, X_train, y_train, method='lasso', alpha=0.0001):
         """Lasso (L1) selection: addestrato SOLO sul training set per scegliere le feature."""
         if method.lower() != 'lasso':
             raise NotImplementedError("Attualmente è supportata solo la selezione tramite Lasso.")
@@ -56,10 +59,10 @@ class Regression:
         scaler = StandardScaler()
         X_train_s = scaler.fit_transform(X_train)
         X_test_s = scaler.transform(X_test)
-
         model = LinearRegression(penalty=penalty, alpha=alpha)
         model.fit(X_train_s, y_train)
-        return model.predict(X_test_s)
+        predictions = model.predict(X_test_s)
+        return model, predictions
 
     def run_tree_regression(self, X_train, y_train, X_test, n_estimators=100, max_depth=20):
         """Random Forest Regressor."""
@@ -67,7 +70,7 @@ class Regression:
         model.fit(X_train, y_train)
         
         predictions = model.predict(X_test)
-        return predictions
+        return model, predictions
 
     def analyze_bias_variance(self):
         """
@@ -131,11 +134,10 @@ class Regression:
         }
         return metrics
     
-    def evaluate(self, model_type='linear', penalty=None, alpha=1.0,
-             n_estimators=100, max_depth=20, use_feature_selection=False):
+    def evaluate(self, model_type='linear', penalty=None, alpha=None, auto_tune=False,
+                 n_estimators=100, max_depth=20, use_feature_selection=False):
         """
-        Orchestra: (opzionale) feature selection → training → predizione → metriche.
-        Il preprocessing va fatto esternamente prima di istanziare Regression.
+        Orchestra: feature selection -> (auto-tuning) -> training -> predizione -> metriche.
         """
         X_train = self.X_train
         X_test  = self.X_test
@@ -143,25 +145,46 @@ class Regression:
         y_test  = self.y_test
 
         if use_feature_selection:
+            # Ricorda: l'ideale sarebbe ottimizzare l'alpha anche per la fase di selection!
             selected_features = self._feature_selection(X_train, y_train)
             X_train = X_train[selected_features]
             X_test  = X_test[selected_features]
 
         if model_type == 'linear':
-            y_pred = self.run_linear_model(X_train, y_train, X_test,
-                                        penalty=penalty, alpha=alpha)
+            # Se è richiesta la regolarizzazione e l'autotuning, cerchiamo l'alpha
+            if penalty in ['l1', 'l2'] and auto_tune:
+                alpha = self.find_best_alpha(penalty=penalty)
+            elif alpha is None:
+                # Imposta i valori di alpha di default se non specificati
+                if penalty == 'l1': # Lasso
+                    alpha = 0.0001
+                elif penalty == 'l2': # Ridge
+                    alpha = 16.76833
+                else:
+                    alpha = 1.0 # Fallback per OLS (dove alpha non è usato)
+
+            model, y_pred = self.run_linear_model(X_train, y_train, X_test,
+                                                  penalty=penalty, alpha=alpha)
+            self.last_model = model
+            
         elif model_type == 'tree':
-            y_pred = self.run_tree_regression(X_train, y_train, X_test,
+            model, y_pred = self.run_tree_regression(X_train, y_train, X_test,
                                             n_estimators=n_estimators,
                                             max_depth=max_depth)
+            self.last_model = model
         else:
             raise ValueError("model_type deve essere 'linear' o 'tree'")
+
+        # Calcoliamo R-squared sulla scala logaritmica (r2_log) prima della conversione
+        r2_log = r2_score(y_test, y_pred)
 
         # Il target è log_price, quindi riconvertiamo per le metriche in dollari
         y_pred_dollars = np.expm1(y_pred)
         y_test_dollars = np.expm1(y_test)
 
         metrics = self.get_metrics(y_test_dollars, y_pred_dollars)
+        # Aggiungiamo la metrica r2_log al dizionario dei risultati
+        metrics['R-squared (log)'] = round(r2_log, 4)
         self.results[model_type] = metrics
         print(f"Risultati '{model_type}': {metrics}")
         return metrics
@@ -191,7 +214,7 @@ class Regression:
         # Lasso
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
-        lasso_model = LinearRegression(penalty='l1', alpha=0.001)
+        lasso_model = LinearRegression(penalty='l1', alpha=0.0001)
         lasso_model.fit(X_train_scaled, y_train)
         coefs = pd.Series(lasso_model.coefficients, index=X_train.columns)
         coefs_nonzero = coefs[coefs != 0]
@@ -207,3 +230,119 @@ class Regression:
 
         plt.tight_layout()
         plt.show()
+
+    def plot_lasso_ridge_comparison(self, alpha_lasso=0.0001, alpha_ridge=16.76833, top_n=15):
+        """
+        Addestra internamente Lasso e Ridge per confrontarne i coefficienti
+        in un unico grafico a barre affiancate.
+        """
+        import numpy as np
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        from sklearn.preprocessing import StandardScaler
+        from Regression.LinearRegression import LinearRegression
+
+        # 1. Standardizzazione delle feature (fondamentale per la regolarizzazione)
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(self.X_train)
+
+        # 2. Addestramento isolato dei due modelli
+        lasso_model = LinearRegression(penalty='l1', alpha=alpha_lasso)
+        lasso_model.fit(X_train_scaled, self.y_train)
+
+        ridge_model = LinearRegression(penalty='l2', alpha=alpha_ridge)
+        ridge_model.fit(X_train_scaled, self.y_train)
+
+        # 3. Creazione del DataFrame comparativo
+        df_coefs = pd.DataFrame({
+            'Feature': self.X_train.columns,
+            'Lasso': lasso_model.coefficients,
+            'Ridge': ridge_model.coefficients
+        })
+
+        # 4. Calcolo dell'impatto medio per ordinare il grafico
+        # Calcoliamo la media dei valori assoluti per trovare le feature più influenti in generale
+        df_coefs['Impatto_Medio'] = (df_coefs['Lasso'].abs() + df_coefs['Ridge'].abs()) / 2
+        
+        # Selezioniamo solo le top_n feature e le ordiniamo in modo crescente per il barh
+        df_coefs = df_coefs.sort_values(by='Impatto_Medio', ascending=True).tail(top_n)
+
+        # 5. Costruzione del grafico
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        y_pos = np.arange(len(df_coefs))
+        height = 0.35  # Spessore delle barre per farle affiancare
+        
+        # Disegniamo le barre sfalsate sull'asse y
+        ax.barh(y_pos - height/2, df_coefs['Lasso'], height, label=f'Lasso (alpha={alpha_lasso})', color='tomato')
+        ax.barh(y_pos + height/2, df_coefs['Ridge'], height, label=f'Ridge (alpha={alpha_ridge})', color='steelblue')
+        
+        # Personalizzazione degli assi
+        ax.set_yticks(y_pos)
+        ax.set_yticklabels(df_coefs['Feature'])
+        ax.set_xlabel('Coefficients (on log_price scale)', fontweight='bold')
+        ax.set_title('Comparison of Lasso and Ridge', fontsize=14, fontweight='bold')
+        
+        # Linea verticale dello zero
+        ax.axvline(0, color='black', linewidth=1.2)
+        ax.grid(axis='x', linestyle='--', alpha=0.5)
+        ax.legend()
+        
+        plt.tight_layout()
+        plt.show()
+
+    def find_best_alpha(self, penalty='l2'):
+        """
+        Trova il parametro alpha ottimale tramite GridSearchCV e Pipeline.
+        """
+        print(f"\nInizio ricerca GridSearchCV per il modello {penalty.upper()}...")
+        
+        # 1. Definiamo i modelli base (senza alpha, verrà iniettato dalla grid)
+        if penalty == 'l1':
+            # max_iter alzato a 10000 perché per alpha molto piccoli 
+            # l'algoritmo di discesa a coordinate fatica a convergere
+            base_model = Lasso(random_state=42, max_iter=10000)
+        elif penalty == 'l2':
+            base_model = Ridge(random_state=42)
+        else:
+            raise ValueError("Il parametro penalty deve essere 'l1' o 'l2'")
+
+        # 2. Creiamo una Pipeline: StandardScaler -> Modello
+        # Questo garantisce che lo scaling venga ricalcolato in ogni fold di CV
+        # solo sulla porzione di training attiva, prevenendo il data leakage.
+        pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('model', base_model)
+        ])
+
+        # 3. Definiamo lo spazio di ricerca logaritmico per alpha
+        # Usiamo il prefisso 'model__' per indicare che stiamo passando 
+        # il parametro al secondo step della pipeline
+        param_grid = {
+            'model__alpha': np.logspace(-4, 4, 50)
+        }
+
+        # 4. Configuriamo la GridSearchCV
+        grid_search = GridSearchCV(
+            estimator=pipeline,
+            param_grid=param_grid,
+            scoring='neg_mean_squared_error',
+            cv=5,        # 5-Fold Cross Validation
+            n_jobs=-1,   # Parallelizza su tutti i core disponibili
+            verbose=1    # Mostra un minimo di log computazionale
+        )
+
+        # Usiamo solo le feature numeriche (gestione base per evitare errori su variabili categoriche)
+        X_train_num = self.X_train.select_dtypes(include=np.number).fillna(0)
+        
+        # Eseguiamo l'addestramento
+        grid_search.fit(X_train_num, self.y_train)
+
+        best_alpha = grid_search.best_params_['model__alpha']
+        best_score = -grid_search.best_score_  # Riconvertiamo in positivo
+        
+        print(f"Ricerca completata.")
+        print(f"Miglior alpha trovato: {best_alpha:.5f}")
+        print(f"MSE stimato in Cross-Validation: {best_score:.4f}\n")
+
+        return best_alpha

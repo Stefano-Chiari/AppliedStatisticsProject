@@ -67,3 +67,11 @@ class LinearRegression:
         if self.is_fitted:
             return self.model.coef_
         return None
+
+    @property
+    def params(self):
+        """Proprietà per accedere ai parametri del modello."""
+        if not self.is_fitted:
+            return {'penalty': self.penalty, 'alpha': self.alpha, 'fit_intercept': self.fit_intercept}
+        
+        return self.model.get_params()
