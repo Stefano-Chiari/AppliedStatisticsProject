@@ -1,3 +1,23 @@
+# NYC Airbnb – Applied Statistics Project
+
+Team project for *Applied Statistics*, Politecnico di Milano (2026),
+with Teresa Barrella, Diana Bonalumi and Lorenzo Pettenuzzo.
+
+**Dataset:** New York City Airbnb Open Data (~49,000 listings: prices, locations, reviews).
+
+**Questions:**
+- **Clustering:** can we identify housing submarkets from geography and price alone?
+  Hierarchical clustering on KMeans-downsampled data (3,000 centroids).
+- **Regression:** what drives price, and can we predict it?
+  Linear models with residual and heteroscedasticity diagnostics vs a cross-validated Random Forest.
+- **Classification:** can we predict the most interesting listings (e.g. by number of reviews)?
+
+**Results (regression):** the Random Forest outperforms the linear models on every metric;
+predictions are accurate in the $0–200 range and degrade on luxury listings.
+
+**Slides:** [presentation](docs/slides.pdf)
+
+---
 # Applied Statistics Project
 
 Repository used for the data analysis project of the **Applied Statistics** exam.
